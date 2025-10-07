@@ -1,1 +1,3 @@
-# Chat_Python_7D
+# Instalar websockets
+# pip3 install websockets
+# cambiar ip

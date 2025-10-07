@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Chat Grupal xd</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="index.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2Pkf6edS5lZxJ4lHxwBlHg0Wl1R9R+0U1G+6uL5qo5F0Q8Aw2nU5r6L2lw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <script src="main.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <!-- Columna de usuarios -->
+      <div id="usuarios">
+        <h3>Usuarios conectados</h3>
+        <div id="lista-usuarios"></div>
+      </div>
+
+      <!-- Columna de chat -->
+      <div id="chat-container">
+        <header class="the_nav">
+          <input type="checkbox" name="togglers" id="toggler" />
+          <label for="toggler">Conversación</label>
+        </header>
+        <div id="chat"></div>
+        <div id="input-container">
+          <textarea
+            type="text"
+            id="mensaje"
+            placeholder="Escribe un mensaje..."
+          ></textarea>
+          <button onclick="enviar()" id="send">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="currentColor"
+            >
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const nombre = prompt("Escribe tu nombre:");
+      const ws = new WebSocket("ws://192.168.0.13:5001");
+      const palomita = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" class='pop'>
+  <title>Palomita</title>
+  <path d="M20.3 5.7a1 1 0 0 0-1.4 0L9 15.6 5.1 11.7a1 1 0 0 0-1.4 1.4l4.6 4.6a1 1 0 0 0 1.4 0l10.6-10.6a1 1 0 0 0 0-1.4z"/>
+</svg>
+`;
+
+      ws.addEventListener("open", () => {
+        console.log("Conectado al servidor WebSocket");
+      });
+
+      // Recibir mensajes del servidor
+      ws.addEventListener("message", (event) => {
+        if (
+          event.data.includes("se ha conectado al canal") ||
+          event.data.includes("se ha desconectado del canal")
+        ) {
+          console.log("Mensaje del servidor:", event.data);
+        }
+
+        // Servidor pide nombre
+        if (event.data === "NOMBRE") {
+          ws.send(nombre);
+          return;
+        }
+
+        // Lista de usuarios
+        if (event.data.startsWith("USUARIOS:")) {
+          const lista = event.data.replace("USUARIOS:", "").split(",");
+          const listaHTML = lista
+            .map((u) => {
+              const ahora = new Date();
+              const horaSinMs = ahora.toLocaleTimeString("es-MX", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              });
+              return u === nombre
+                ? `<div class="user">
+                <img src="https://avatar.iran.liara.run/username?username=${u}" class="profile_img"/>
+                <div class="user-info">
+                  <span id="profile_name">${u}<b> (Tú)</b></span>
+                  <span id="profile_status">En línea</span>
+                </div>
+                <span id="profile_time">${horaSinMs}</span>
+              </div>`
+                : `<div class="user">
+                <img src="https://avatar.iran.liara.run/username?username=${u}" class="profile_img"/>
+                <div class="user-info">
+                  <span id="profile_name">${u}</span>
+                  <span id="profile_status">En línea</span>
+                </div>
+                <span id="profile_time">09:55</span>
+              </div>`;
+            })
+            .join("");
+          document.getElementById("lista-usuarios").innerHTML = listaHTML;
+          return;
+        }
+
+        // Mensajes normales
+        const chatDiv = document.getElementById("chat");
+        if (
+          event.data.includes("se ha conectado al canal") ||
+          event.data.includes("se ha desconectado del canal")
+        ) {
+          chatDiv.innerHTML += `<div class="advice">${event.data}</div>`;
+        } else {
+          const ahora = new Date();
+          const horaSinMs = ahora.toLocaleTimeString("es-MX", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+          const [user, message] = event.data.split(":");
+          chatDiv.innerHTML +=
+            "<div class='you_message'>" +
+            "<p class='who'>" +
+            user +
+            "</p>" +
+            "<div class='you_content'>" +
+            message +
+            "</div><span class='chat_time'>" +
+            horaSinMs +
+            "</span></div>";
+        }
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      });
+
+      // Enviar mensaje
+      function enviar() {
+        const input = document.getElementById("mensaje");
+        const mensaje = input.value.trim();
+        const ahora = new Date();
+        const horaSinMs = ahora.toLocaleTimeString("es-MX", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+
+        if (mensaje !== "" && ws.readyState === WebSocket.OPEN) {
+          // MOSTRARLO LOCALMENTE
+          const chatDiv = document.getElementById("chat");
+          chatDiv.innerHTML +=
+            "<div class='my_message'><div class='my_content'>" +
+            mensaje +
+            "</div><span class='chat_time'>" +
+            horaSinMs +
+            palomita +
+            "</span></div>";
+          chatDiv.scrollTop = chatDiv.scrollHeight;
+
+          // ENVIAR AL SERVIDOR
+          ws.send(mensaje);
+          input.value = "";
+        }
+      }
+
+      // Enviar con Enter
+      document
+        .getElementById("mensaje")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            enviar();
+          }
+        });
+    </script>
+  </body>
+</html>
