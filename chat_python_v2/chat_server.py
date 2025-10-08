@@ -1,11 +1,19 @@
-#python -m http.server 8000
-#pip install websockets
-#python chat_server.py
 import asyncio
 import websockets
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+
+
+
+IP_SERVIDOR = "192.168.109.211"
+PUERTO = 5001
 
 canales = {"general": set()}
 nombres = {}
+
+# Cargar llave privada
+with open("private_key.pem", "rb") as f:
+    private_key = serialization.load_pem_private_key(f.read(), password=None)
 
 async def manejar_cliente(websocket):
     try:
@@ -20,7 +28,23 @@ async def manejar_cliente(websocket):
         await actualizar_usuarios(canal)
 
         async for mensaje in websocket:
-            await broadcast(f"{nombre}: {mensaje}", canal, websocket)
+            try:
+                # Convertir mensaje de hex a bytes
+                mensaje_bytes = bytes.fromhex(mensaje)
+                # Descifrar con llave privada
+                mensaje_descifrado = private_key.decrypt(
+                    mensaje_bytes,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                        algorithm=hashes.SHA256(),
+                        label=None
+                    )
+                )
+                texto = mensaje_descifrado.decode()
+                print(f"Mensaje descifrado correctamente: '{texto}' de {nombre}")
+                await broadcast(f"{nombre}: {texto}", canal, websocket)
+            except Exception as e:
+                print("Error al descifrar mensaje:", e)
     except websockets.ConnectionClosed:
         pass
     finally:
@@ -49,8 +73,8 @@ async def actualizar_usuarios(canal):
             pass
 
 async def main():
-    server = await websockets.serve(manejar_cliente, "192.168.0.13", 5001)
-    print("Servidor WebSocket con canales listo en ws://192.168.0.13:5001")
+    server = await websockets.serve(manejar_cliente, IP_SERVIDOR, PUERTO)
+    print(f"Servidor WebSocket con canales listo en ws://{IP_SERVIDOR}:{PUERTO}")
     await server.wait_closed()
 
 if __name__ == "__main__":
