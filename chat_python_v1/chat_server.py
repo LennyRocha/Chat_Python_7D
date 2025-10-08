@@ -85,7 +85,7 @@ async def actualizar_usuarios(canal):
 
 async def main():
     server = await websockets.serve(manejar_cliente, IP_SERVIDOR, PUERTO)
-    print("Servidor WebSocket con canales listo en ws://{IP_SERVIDOR}:{PUERTO}")
+    print(f"Servidor WebSocket con canales listo en ws://{IP_SERVIDOR}:{PUERTO}")
     await server.wait_closed()
 
 if __name__ == "__main__":
