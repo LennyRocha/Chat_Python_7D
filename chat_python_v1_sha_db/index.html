@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Chat Grupal Seguro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        background: #1a1a2e;
+      }
+
+      #container {
+        display: flex;
+        height: 100vh;
+      }
+
+      #usuarios {
+        width: 250px;
+        background: #16213e;
+        color: white;
+        padding: 20px;
+        overflow-y: auto;
+        border-right: 2px solid #0f3460;
+      }
+
+      #usuarios h3 {
+        margin-bottom: 15px;
+        font-size: 18px;
+        color: #e94560;
+        border-bottom: 2px solid #e94560;
+        padding-bottom: 10px;
+      }
+
+      #lista-usuarios div {
+        padding: 10px;
+        margin: 8px 0;
+        background: #0f3460;
+        border-radius: 8px;
+        transition: all 0.3s;
+      }
+
+      #lista-usuarios div:hover {
+        background: #1a4d7a;
+        transform: translateX(5px);
+      }
+
+      #lista-usuarios i {
+        margin-right: 8px;
+        color: #4ecca3;
+      }
+
+      #chat-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #0f3460;
+      }
+
+      .the_nav {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .the_nav input {
+        display: none;
+      }
+
+      #chat {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #1a1a2e;
+      }
+
+      #chat div {
+        margin: 10px 0;
+        padding: 12px 15px;
+        background: #16213e;
+        border-radius: 12px;
+        word-wrap: break-word;
+        animation: fadeIn 0.3s;
+        border-left: 3px solid #4ecca3;
+        color: #e8e8e8;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #chat div b {
+        color: #4ecca3;
+      }
+
+      #input-container {
+        display: flex;
+        padding: 20px;
+        background: #16213e;
+        gap: 15px;
+        border-top: 2px solid #0f3460;
+      }
+
+      #mensaje {
+        flex: 1;
+        padding: 15px;
+        border: 2px solid #4ecca3;
+        border-radius: 12px;
+        font-size: 15px;
+        resize: none;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f3460;
+        color: white;
+        transition: all 0.3s;
+      }
+
+      #mensaje:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+      }
+
+      #mensaje::placeholder {
+        color: #888;
+      }
+
+      #send {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      #send:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      #send:active {
+        transform: scale(0.95);
+      }
+
+      /* Estilo para mensajes del sistema */
+      .system-message {
+        background: #0f3460 !important;
+        border-left: 3px solid #e94560 !important;
+        font-style: italic;
+      }
+
+      .my-message {
+        background: #1a4d7a !important;
+        border-left: 3px solid #667eea !important;
+      }
+
+      /* Scrollbar personalizado */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #0f3460;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #4ecca3;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <!-- Columna de usuarios -->
+      <div id="usuarios">
+        <h3><i class="fas fa-users"></i> Usuarios Online</h3>
+        <div id="lista-usuarios"></div>
+      </div>
+
+      <!-- Columna de chat -->
+      <div id="chat-container">
+        <header class="the_nav">
+          <i class="fas fa-comments"></i> Chat Seguro (AES-256 + HMAC)
+        </header>
+        <div id="chat"></div>
+        <div id="input-container">
+          <textarea
+            id="mensaje"
+            placeholder="Escribe un mensaje cifrado..."
+            rows="1"
+          ></textarea>
+          <button id="send">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="28"
+              height="28"
+              fill="currentColor"
+            >
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ================= CONFIG =================
+      const SERVIDOR_WS = "ws://localhost:5001";
+      const ws = new WebSocket(SERVIDOR_WS);
+
+      // Debe coincidir exactamente con lo que tienes en el servidor (bytes/valor)
+      const AES_KEY = new Uint8Array([
+        49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+        57, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 49, 50,
+      ]); // "12345678901234567890123456789012"
+
+      // Clave secreta para HMAC: debe coincidir exactamente con la del servidor (en bytes)
+      const CLAVE_SECRETA = "clave_super_secreta"; // si en servidor es b"clave_super_secreta"
+
+      // Nombre de usuario
+      let nombre = prompt("Ingresa tu nombre de usuario:");
+      if (!nombre) nombre = "Usuario_" + Math.floor(Math.random() * 1000);
+
+      // ======= UTIL: convertir Uint8Array -> hex (lowercase) =======
+      function toHexLower(uint8arr) {
+        return Array.from(uint8arr)
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      // ======= UTIL: URL-safe base64 sin padding =======
+      function toBase64UrlNoPad(uint8arr) {
+        // btoa requires string of char codes
+        let str = String.fromCharCode.apply(null, uint8arr);
+        let b64 = btoa(str);
+        // to url-safe and remove '='
+        return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      }
+
+      // ======= PKCS7 padding (manual) =======
+      function pkcs7Pad(buffer) {
+        const blockSize = 16;
+        const padLen = blockSize - (buffer.length % blockSize || blockSize);
+        const padded = new Uint8Array(buffer.length + padLen);
+        padded.set(buffer, 0);
+        for (let i = buffer.length; i < padded.length; i++) padded[i] = padLen;
+        return padded;
+      }
+
+      // ======= CIFRADO + HMAC (formato esperado: cipherB64|hmacHex) =======
+      async function cifrarYGenerarHMAC(texto) {
+        const encoder = new TextEncoder();
+
+        // 1) importar clave AES (raw) - debe coincidir con servidor
+        const keyAES = await crypto.subtle.importKey(
+          "raw",
+          AES_KEY,
+          { name: "AES-CBC" },
+          false,
+          ["encrypt"]
+        );
+
+        // 2) generar IV
+        const iv = crypto.getRandomValues(new Uint8Array(16));
+
+        // 3) preparar plaintext con PKCS7
+        const plain = encoder.encode(texto);
+        const padded = pkcs7Pad(plain);
+
+        // 4) cifrar
+        const encryptedBuffer = await crypto.subtle.encrypt(
+          { name: "AES-CBC", iv: iv },
+          keyAES,
+          padded
+        );
+        const encrypted = new Uint8Array(encryptedBuffer);
+
+        // 5) combinar iv + ciphertext
+        const combinado = new Uint8Array(iv.length + encrypted.length);
+        combinado.set(iv, 0);
+        combinado.set(encrypted, iv.length);
+
+        // 6) calcular HMAC-SHA256 sobre los bytes combinados usando CLAVE_SECRETA como raw bytes
+        const keyHmac = await crypto.subtle.importKey(
+          "raw",
+          encoder.encode(CLAVE_SECRETA),
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["sign"]
+        );
+        const hmacBuffer = await crypto.subtle.sign("HMAC", keyHmac, combinado);
+        const hmacUint8 = new Uint8Array(hmacBuffer);
+        const hmacHex = toHexLower(hmacUint8);
+
+        // 7) codificar combinado (iv+ciphertext) en URL-safe base64 sin padding
+        const cipherB64 = toBase64UrlNoPad(combinado);
+
+        // 8) retornar en formato que el servidor espera: cipherB64|hmacHex
+        return `${cipherB64}|${hmacHex}`;
+      }
+
+      // ======= FUNCIONES UI / CHAT =======
+      function mostrarMensaje(mensaje, propio = false, sistema = false) {
+        const chat = document.getElementById("chat");
+        const div = document.createElement("div");
+        if (sistema) {
+          div.className = "system-message";
+          div.innerHTML = mensaje;
+        } else if (propio) {
+          div.className = "my-message";
+          div.textContent = mensaje;
+        } else {
+          div.className = "other-message";
+          div.textContent = mensaje;
+        }
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      // ======= WEBSOCKET EVENTS =======
+      ws.addEventListener("open", () => {
+        console.log("✅ Conectado al servidor WebSocket");
+        mostrarMensaje(
+          '<i class="fas fa-check-circle"></i> <b>Conectado al servidor</b>',
+          false,
+          true
+        );
+      });
+
+      ws.addEventListener("error", (err) => {
+        console.error("❌ Error WebSocket:", err);
+        mostrarMensaje(
+          '<i class="fas fa-exclamation-triangle"></i> <b>Error de conexión al servidor</b>',
+          false,
+          true
+        );
+      });
+
+      ws.addEventListener("close", () => {
+        console.log("⚠ Desconectado del servidor");
+        mostrarMensaje(
+          '<i class="fas fa-times-circle"></i> <b>Desconectado del servidor</b>',
+          false,
+          true
+        );
+      });
+
+      ws.addEventListener("message", (ev) => {
+        const data = ev.data;
+
+        // Solicitud de nombre
+        if (data === "NOMBRE") {
+          ws.send(nombre);
+          return;
+        }
+
+        // Usuarios
+        if (data.startsWith("USUARIOS:")) {
+          const lista = data
+            .substring(9)
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const listaDiv = document.getElementById("lista-usuarios");
+          listaDiv.innerHTML = lista.map((u) => `<div>👤 ${u}</div>`).join("");
+          return;
+        }
+
+        // Historial
+        if (data === "HISTORIAL_INICIO") {
+          mostrarMensaje("<hr><b>Historial de mensajes:</b><br>", false, true);
+          return;
+        }
+        if (data.startsWith("HISTORIAL:")) {
+          mostrarMensaje(data.replace("HISTORIAL:", ""), false, true);
+          return;
+        }
+        if (data === "HISTORIAL_FIN") {
+          mostrarMensaje("<hr><b>Fin del historial</b>", false, true);
+          return;
+        }
+
+        // Mensajes del sistema
+        if (data.startsWith("✓") || data.startsWith("✗")) {
+          mostrarMensaje(data, false, true);
+          return;
+        }
+
+        // Mensajes normales
+        if (data.startsWith(nombre + ":")) {
+          mostrarMensaje(data, true);
+        } else {
+          mostrarMensaje(data);
+        }
+      });
+
+      // ======= ENVÍO DE MENSAJES =======
+      document.getElementById("send").addEventListener("click", async () => {
+        const textarea = document.getElementById("mensaje");
+        const texto = textarea.value.trim();
+        if (!texto) return;
+
+        if (ws.readyState !== WebSocket.OPEN) {
+          alert("⚠️ No estás conectado al servidor");
+          return;
+        }
+
+        try {
+          // cifrar y enviar en el formato esperado
+          const paquete = await cifrarYGenerarHMAC(texto);
+          ws.send(paquete);
+
+          // mostrar localmente
+          mostrarMensaje(`${nombre}: ${texto}`, true);
+          textarea.value = "";
+        } catch (e) {
+          console.error("❌ Error al cifrar/enviar:", e);
+          mostrarMensaje(
+            `<b>❌ Error al cifrar:</b> ${e.message}`,
+            false,
+            true
+          );
+        }
+      });
+
+      // Enter para enviar
+      document.getElementById("mensaje").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById("send").click();
+        }
+      });
+    </script>
+  </body>
+</html>
