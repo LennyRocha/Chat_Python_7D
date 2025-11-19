@@ -9,6 +9,8 @@ let canal = null;
 
 let my_name = "";
 
+let my_email = "";
+
 const perfilImg = document.getElementById("side_img");
 
 function setCanalName() {
@@ -17,7 +19,6 @@ function setCanalName() {
     chat.innerHTML = canal.nombre
     const img = document.getElementById("img_contact")
     img.src = `https://avatar.iran.liara.run/username?username=${canal.nombre}`
-    renderCanales()
 }
 
 /* Cierra el menú cuando está en modo móvil */
@@ -104,7 +105,7 @@ function conectarWS() {
 
         switch (data.tipo) {
             case "mensaje":
-                renderCanales();
+                renderCanalesSocket(data.lista);
                 agregarMensajeAlDOM(data);
                 break;
 
@@ -118,11 +119,21 @@ function conectarWS() {
                     canal = data.canal;
                     setCanalName();
                 }
-                renderHistorial(data.mensajes);
+
+                if (data.mensajes.length === 0) {
+                    paintMessageEmpty();
+                } else {
+                    renderHistorial(data.mensajes);
+                }
                 break;
 
             case "comando":
-                renderCanales()
+                switch (data.comando) {
+                    case "/crear":
+                    case "/crear_priv":
+                        renderCanalesSocket(data.lista);
+                        break;
+                }
                 agregarMensajeSistema({ texto: data.resultado.mensaje ?? data.mensaje ?? data.resultado });
                 break;
             case "bienvenida":
@@ -295,6 +306,10 @@ async function renderCanales() {
     }
 
     lista.forEach((u) => {
+        const mostrarUsuario =
+            u.ultimo?.usuario_nombre && u.ultimo.usuario_nombre !== my_name
+                ? `<strong>${u.ultimo.usuario_nombre}:</strong> `
+                : "";
         const li = document.createElement("li");
         li.className = `user-item ${canal?._id === u._id ? "active" : ""}`;
 
@@ -306,7 +321,39 @@ async function renderCanales() {
                     <p class="user-item-time">Creado: ${formatearFecha(u.fecha_creacion) || ""}</p>
                 </div>
                 <div class="user-item-div">
-                    <h6 class="user-item-mensaje">${u.ultimo?.contenido ?? "Sin mensajes"}</h6>
+                    <h6 class="user-item-mensaje">${mostrarUsuario} ${u.ultimo?.contenido ?? "Sin mensajes"}</h6>
+                </div>
+            </div>
+        `;
+
+        // Listener seguro que pasa el objeto completo
+        li.addEventListener("click", () => { joinCanal(u); closeMenu() });
+
+        ul.appendChild(li);
+    });
+}
+
+async function renderCanalesSocket(lista) {
+    const ul = document.getElementById("lista-usuarios");
+    ul.innerHTML = "";
+
+    lista.forEach((u) => {
+        const mostrarUsuario =
+            u.ultimo?.usuario && u.ultimo.usuario !== my_name
+                ? `<strong>${u.ultimo.usuario}:</strong> `
+                : "";
+        const li = document.createElement("li");
+        li.className = `user-item ${canal?._id === u._id ? "active" : ""}`;
+
+        li.innerHTML = `
+            <img src="${u.picture ?? `https://avatar.iran.liara.run/username?username=${u.nombre}`}">
+            <div class="user-item-data">
+                <div class="user-item-div">
+                    <h5 class="user-item-name">${u.nombre}</h5>
+                    <p class="user-item-time">Creado: ${formatearFecha(u.fecha_creacion) || ""}</p>
+                </div>
+                <div class="user-item-div">
+                    <h6 class="user-item-mensaje">${mostrarUsuario} ${u.ultimo?.contenido ?? "Sin mensajes"}</h6>
                 </div>
             </div>
         `;
@@ -407,9 +454,8 @@ async function cargarPerfil() {
             return;
         }
 
-        // Actualizar UI si quieres
-        console.log("Perfil cargado:", data);
         my_name = data.nombre;
+        my_email = data.email;
         perfilImg.src = data.picture ?? `https://avatar.iran.liara.run/username?username=${data.nombre}+${data.apellido ?? ''}`
     } catch (err) {
         console.error("Error obteniendo perfil:", err);
@@ -492,3 +538,23 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 });
+
+const emmbeddMessage = `         
+         <div class="lord_icon_chat">
+            <lord-icon
+                src="https://cdn.lordicon.com/tsrgicte.json"
+                trigger="hover"
+                style="width: 250px; height: 250px"
+            >
+            </lord-icon>
+            <h2>¡Es hora de romper el hielo!</h2>
+            <h4>
+              Está conversación esta vacía, envía un mensaje para comenzar
+            </h4>
+          </div>`
+
+function paintMessageEmpty() {
+    const chat = document.getElementById("chat");
+    chat.innerHTML = '';
+    chat.innerHTML = emmbeddMessage;
+}

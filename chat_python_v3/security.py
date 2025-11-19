@@ -5,6 +5,7 @@ from datetime import datetime
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from config import AES_KEY, CLAVE_SECRETA, AUDIT_LOG_FILE, ENABLE_AUDIT
+import base64
 
 def crear_hmac(mensaje_bytes):
     """Crea HMAC-SHA256 de los datos"""
@@ -75,3 +76,29 @@ def descifrar_aes_cbc(cipher_bytes):
     
     except Exception as e:
         raise ValueError(f"Error al descifrar: {str(e)}")
+    
+def cifrar_aes_cbc(texto: str) -> bytes:
+    """
+    Cifra un string con AES-CBC + PKCS7 padding.
+    Devuelve: IV + ciphertext (en bytes)
+    """
+    # Convertir a bytes
+    mensaje_bytes = texto.encode("utf-8")
+
+    # Padding PKCS7
+    padding_len = 16 - (len(mensaje_bytes) % 16)
+    mensaje_bytes += bytes([padding_len]) * padding_len
+
+    # IV aleatorio de 16 bytes
+    iv = os.urandom(16)
+
+    cipher = Cipher(
+        algorithms.AES(AES_KEY),
+        modes.CBC(iv),
+        backend=default_backend()
+    )
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(mensaje_bytes) + encryptor.finalize()
+
+    # Guardamos IV + ciphertext
+    return base64.b64encode(ciphertext).decode("utf-8")

@@ -1,5 +1,4 @@
 import json
-import hashlib
 from datetime import datetime
 from db_manager import db_manager
 from bson import ObjectId
@@ -44,13 +43,15 @@ async def procesar_comando(websocket, usuario_id, mensaje):
 
         nombre = partes[1].strip()
         canal_id = db_manager.crear_canal(nombre, usuario_id)
+        canales = db_manager.obtener_canales_donde_estoy(usuario_id)
         await websocket.send(json.dumps({
             "tipo": "comando",
             "comando": "/crear",
             "resultado": {
                 "exito": bool(canal_id),
                 "mensaje": f"Canal '{nombre}' creado con id {canal_id}" if canal_id else "❌ No se pudo crear. ¿Existe ya el nombre?"
-            }
+            },
+            "lista" : canales
         }))
         return True
 
@@ -67,13 +68,15 @@ async def procesar_comando(websocket, usuario_id, mensaje):
 
         nombre = partes[1].strip()
         canal_id = db_manager.crear_canal_privado(nombre, usuario_id)
+        canales = db_manager.obtener_canales_donde_estoy(usuario_id)
         await websocket.send(json.dumps({
             "tipo": "comando",
             "comando": "/crear_priv",
             "resultado": {
                 "exito": bool(canal_id),
                 "mensaje": f"Canal '{nombre}' creado con id {canal_id}" if canal_id else "❌ No se pudo crear. ¿Existe ya el nombre?"
-            }
+            },
+            "lista" : canales
         }))
         return True
 
@@ -92,7 +95,7 @@ async def procesar_comando(websocket, usuario_id, mensaje):
             return True
 
         canal_id = str(canal_doc["_id"])
-        db_manager.agregar_usuario_a_canal(canal_id, usuario_id)
+        db_manager.agregar_usuario_a_canal_por_id(canal_id, usuario_id)
         usuario_canal[websocket] = canal_id
 
         historial = []
@@ -106,9 +109,9 @@ async def procesar_comando(websocket, usuario_id, mensaje):
 
             historial.append({
                 "nombre": usuario["nombre"],
-                "contenido": mensaje_descifrado,
+                "contenido": mensaje_cifrado,
                 "fecha": m.get("timestamp") or datetime.utcnow().isoformat(),
-                "hash": m.get("hash_sha256")  # opcional, para mostrar al usuario
+                "hash": m.get("hash_sha256") 
             })
 
         await websocket.send(json.dumps({
@@ -164,7 +167,7 @@ async def procesar_comando(websocket, usuario_id, mensaje):
 
         # Ejecutar la acción según el comando
         if comando == "/agregar":
-            exito = db_manager.agregar_usuario_a_canal(canal_id, email, usuario_id)
+            exito = db_manager.agregar_usuario_a_canal(canal_id, email)
             mensaje_resultado = "✅ Usuario agregado" if exito else "❌ No se pudo agregar"
         elif comando == "/remover":
             exito = db_manager.remover_usuario_de_canal(canal_id, email)
@@ -278,6 +281,8 @@ async def manejar_cliente(websocket):
 
             # 4. Crear HMAC opcional si quieres integridad adicional
             hmac_mensaje = crear_hmac(contenido.encode())
+            
+            canales = db_manager.obtener_canales_donde_estoy(usuario_id)
 
             # ENVIAR JSON A TODOS
             await broadcast(
@@ -287,7 +292,8 @@ async def manejar_cliente(websocket):
                     "usuario": usuario["nombre"],
                     "contenido": contenido,
                     "fecha": data.get("fecha", datetime.utcnow().isoformat()),
-                     "hmac": hmac_mensaje
+                     "hmac": hmac_mensaje,
+                     "lista":canales
                 })
             )
 

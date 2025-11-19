@@ -6,3 +6,22 @@ Inicio de auditoría: 2025-11-18 18:59:54
 TIMESTAMP            | USUARIO              | HASH SHA-256                                                     | LONGITUD  
 ------------------------------------------------------------------------------------------------------------------------
 [2025-11-18 18:59:54] | Leonardo Obed        | 5267928b03d683f68ddfa09df94aa121580e5cebf295c011e9d55bc194efbe12 |    11 chars
+[2025-11-18 19:04:09] | Leonardo Obed        | 70254800b776221d4c96741e23aba317fd3b9d9101d8eda9db16962530eb105c |    12 chars
+[2025-11-18 19:23:46] | Leonardo Obed        | a578e0318a53bd287b0ba558864fb994a6a937c3e7549a30a5d2e9b8aa94b09e |     5 chars
+[2025-11-18 19:23:52] | Leonardo Obed        | 7a77dec6ccea995eddff86fad0769b88ab10898b2893887ceb47e7d8f1db8d38 |     2 chars
+[2025-11-18 19:23:55] | Leonardo Obed        | 8e35c2cd3bf6641bdb0e2050b76932cbb2e6034a0ddacc1d9bea82a6ba57f7cf |     1 chars
+[2025-11-18 19:25:14] | Leonardo Obed        | 959a45d44e6fcf58361ed004681556fe50129f2109e817dec098c00c9e5d2578 |     2 chars
+[2025-11-18 19:25:16] | Leonardo Obed        | 39e741eddb03e3118da619625b9200e131832dc8cc8542e2198b1e00e02c48a3 |     2 chars
+[2025-11-18 19:25:53] | Leonardo Obed        | 18ac3e7343f016890c510e93f935261169d9e3f565436429830faf0934f4f8e4 |     1 chars
+[2025-11-18 19:38:57] | Leonardo Obed        | 67ad8f41a7bb0a18c45f3efd8f6a32bdcd832bcf8f3f2eb44006c03d53076e18 |     2 chars
+[2025-11-18 19:41:08] | Leonardo Obed        | ed08c290d7e22f7bb324b15cbadce35b0b348564fd2d5f95752388d86d71bcca |     4 chars
+[2025-11-18 19:48:49] | Leonardo Obed        | 16e75f04b2e3c817d51d776718e575fb7da108726c49179f4ae4f0be18a30e8f |    12 chars
+[2025-11-18 19:49:27] | Leonardo Obed        | 9741fb7d0d522c354164bfc660ca02f9a1e70b697183102e87e9be276b8d83f6 |    11 chars
+[2025-11-18 19:50:03] | Leonardo Obed        | 3d7ed1bfba73247ddf19ef536cdf127282254595172404b61360b0b31317e006 |     4 chars
+[2025-11-18 19:51:08] | Leonardo Obed        | b31bc4bcfa96f5d98404212114d68ee96e87e7767a86df292b78d8356d8eb973 |    16 chars
+[2025-11-18 19:58:01] | Leonardo Obed        | b221d9dbb083a7f33428d7c2a3c3198ae925614d70210e28716ccaa7cd4ddb79 |     4 chars
+[2025-11-18 20:01:24] | Leonardo Obed        | 8b5bcecefba46caae4ad3af88317ab541500669aa9d84954a56aece500e22409 |    32 chars
+[2025-11-18 20:01:34] | Leonardo Obed        | 5cca094df4391f7d95ff54f68053bd98376ab9b739829774bca7b01746b94d77 |    18 chars
+[2025-11-18 20:06:11] | Joan                 | 9d53e27df353cc70019d62b1c632922b259a9c8d9f7b9a4de7730838c6d29995 |    22 chars
+[2025-11-18 20:08:15] | Leonardo Obed        | fa690b82061edfd2852629aeba8a8977b57e40fcb77d1a7a28b26cba62591204 |     3 chars
+[2025-11-18 20:08:47] | Joan                 | e716c1536b8c7a85eb49b4a0fb5c6cf24a5ac69dea76f97a97266ebceb3aa4d8 |     3 chars

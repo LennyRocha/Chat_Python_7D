@@ -5,6 +5,7 @@ from pymongo.errors import ConnectionFailure, DuplicateKeyError
 from bson import ObjectId
 from config import MONGO_URI, DB_NAME
 from passlib.hash import bcrypt
+from security import cifrar_aes_cbc
 
 
 class DatabaseManager:
@@ -369,7 +370,7 @@ class DatabaseManager:
             # Buscar el mensaje más reciente por fecha
             doc = self.db.mensajes.find_one(
                 {"canal_id": ObjectId(canal_id)},  # Filtra por canal
-                sort=[("fecha", -1)]                # Orden descendente por fecha
+                sort=[("timestamp", -1)]                # Orden descendente por fecha
             )
             if not doc:
                 return None
@@ -464,12 +465,27 @@ class DatabaseManager:
             print(f"[DB ERROR] obtener_canal_doc_por_nombre: {e}")
             return None
 
-    def agregar_usuario_a_canal(self, canal_id: str, email: str, usuario_id: str) -> bool:
+    def agregar_usuario_a_canal(self, canal_id: str, email: str) -> bool:
         """Agrega usuario (ObjectId) a miembros[]. Devuelve True si modificado."""
         if not self.conectado:
             return False
         try:
             user = self.db.usuarios.find_one({"email": email})
+            res = self.db.canales.update_one(
+                {"_id": ObjectId(canal_id)},
+                {"$addToSet": {"miembros": ObjectId(user["_id"])}}
+            )
+            return res.modified_count > 0 or res.matched_count > 0
+        except Exception as e:
+            print(f"[DB ERROR] agregar_usuario_a_canal: {e}")
+            return False
+
+    def agregar_usuario_a_canal_por_id(self, canal_id: str,  usuario_id: str) -> bool:
+        """Agrega usuario (ObjectId) a miembros[]. Devuelve True si modificado."""
+        if not self.conectado:
+            return False
+        try:
+            user = self.db.usuarios.find_one({"_id": ObjectId(usuario_id)})
             res = self.db.canales.update_one(
                 {"_id": ObjectId(canal_id)},
                 {"$addToSet": {"miembros": ObjectId(user["_id"])}}
@@ -539,6 +555,48 @@ class DatabaseManager:
             print(f"[DB ERROR] borrar_canal: {e}")
             return False
 
+    def salir_de_canal(self, usuario_id: str, canal_id: str) -> bool:
+        """
+        Quita al usuario de miembros y administradores del canal,
+        pero NO permite salir si el canal quedaría sin administradores.
+        Devuelve True si salió, False si no fue posible.
+        """
+        if not self.conectado:
+            return False
+
+        try:
+            canal = self.db.canales.find_one({"_id": ObjectId(canal_id)})
+            if not canal:
+                return False
+
+            usuario_obj = ObjectId(usuario_id)
+
+            # Si el usuario es admin, verificar si es el último
+            if usuario_obj in canal.get("administradores", []):
+                num_admins = len(canal.get("administradores", []))
+
+                # Si es el último admin, NO permitimos salir
+                if num_admins <= 1:
+                    print("[INFO] No puedes salir: solo hay un administrador.")
+                    return False
+
+            # Si pasa esta validación, sí se puede salir
+            res = self.db.canales.update_one(
+                {"_id": ObjectId(canal_id)},
+                {
+                    "$pull": {
+                        "miembros": usuario_obj,
+                        "administradores": usuario_obj
+                    }
+                }
+            )
+
+            return res.modified_count > 0 or res.matched_count > 0
+
+        except Exception as e:
+            print(f"[DB ERROR] salir_de_canal: {e}")
+            return False
+    
     # -------------------------------
     # MENSAJES
     # -------------------------------

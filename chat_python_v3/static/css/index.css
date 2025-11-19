@@ -500,7 +500,7 @@
           width: 100%;
           margin: 0;
           font-weight: normal !important;
-          font-size: 0.5rem !important;
+          font-size: 0.75rem !important;
       }
 
       @media (min-width: 767px) {
@@ -558,4 +558,8 @@
           align-items: center;
           justify-content: center;
           padding: .5rem;
+      }
+
+      .lord_icon_chat h4{
+        text-align: center;
       }
