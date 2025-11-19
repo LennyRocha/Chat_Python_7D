@@ -7,7 +7,7 @@
 - Nombre: Chat Grupal Seguro
 - Versión Actual: v3.0.0
 - Fecha de Inicio: 18/11/2025
-- Desarrollador: [Tu Nombre]
+- EQUIPO DE CIBERSEGURIDAD
 
 ## DESCRIPCIÓN
 
