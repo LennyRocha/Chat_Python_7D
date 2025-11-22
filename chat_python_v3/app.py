@@ -2,7 +2,7 @@
 import threading
 import asyncio
 from flask import Flask
-from ws_server import iniciar_ws   # tu función async iniciar()
+from ws_server import iniciar_ws 
 from config import oauth
 from index import rutas
 import os

@@ -160,11 +160,9 @@ class DatabaseManager:
         
         try:
             res = self.db.usuarios.insert_one(doc)
-            print('exito')
             return str(res.inserted_id)
         except DuplicateKeyError as e :
             # Email ya existe
-            print(e)
             return None
 
     # ----------------------------
@@ -322,7 +320,6 @@ class DatabaseManager:
                 "fecha_creacion": datetime.now()
             }
             
-            print(canal_doc)
             res = self.db.canales.insert_one(canal_doc)
             return str(res.inserted_id)
         except Exception as e:

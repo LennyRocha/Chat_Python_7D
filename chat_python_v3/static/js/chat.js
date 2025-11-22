@@ -43,14 +43,14 @@ const comands = [
     { comando: "/crear_priv nombre", descripcion: "Crear canal privado" },
     { comando: "/unir nombre", descripcion: "Unirse a un canal" },
     { comando: "/salir", descripcion: "Volver al canal general" },
-    { comando: "/agregar email canal", descripcion: "Agregar usuario a canal (solo admin)" },
-    { comando: "/remover email canal", descripcion: "Remover usuario de canal (solo admin)" },
-    { comando: "/dar_admin email canal", descripcion: "Dar permisos de admin (solo admin)" },
-    { comando: "/quitar_admin email canal", descripcion: "Quitar permisos de admin (solo admin)" }
+    { comando: "/agregar correo canal", descripcion: "Agregar usuario a canal (solo admin)" },
+    { comando: "/remover correo canal", descripcion: "Remover usuario de canal (solo admin)" },
+    { comando: "/dar_admin correo canal", descripcion: "Dar permisos de admin (solo admin)" },
+    { comando: "/quitar_admin correo canal", descripcion: "Quitar permisos de admin (solo admin)" }
 ];
 
 // Ejemplo: imprimir en consola
-comandos.forEach(c => console.log(`${c.comando} → ${c.descripcion}`));
+comands.forEach(c => console.log(`${c.comando} → ${c.descripcion}`));
 
 
 /* ===========================================
@@ -67,9 +67,6 @@ let usuarioActual = {
     google_id: sessionStorage.getItem("user_google_id") || null
 };
 
-/* Guardar ID si no existía */
-sessionStorage.setItem("user_id", usuarioActual._id);
-
 /* ===========================================
    CONEXIÓN WEBSOCKET
 =========================================== */
@@ -77,6 +74,8 @@ function conectarWS() {
     console.log("[WS] Conectando a", WS_URL);
 
     socket = new WebSocket(WS_URL);
+
+    const chatDiv = document.getElementById("chat");
 
     /* Cuando conecta */
     socket.onopen = () => {
@@ -131,6 +130,10 @@ function conectarWS() {
                 switch (data.comando) {
                     case "/crear":
                     case "/crear_priv":
+                        renderCanalesSocket(data.lista);
+                        break;
+                    case "/salir":
+                        chatDiv.innerHTML = '';
                         renderCanalesSocket(data.lista);
                         break;
                 }
@@ -305,6 +308,12 @@ async function renderCanales() {
         return;
     }
 
+    if (lista.length === 0) {
+        ul.innerHTML = emmbeddMessageChat;
+        changeLordIconColors();
+        return;
+    }
+
     lista.forEach((u) => {
         const mostrarUsuario =
             u.ultimo?.usuario_nombre && u.ultimo.usuario_nombre !== my_name
@@ -336,6 +345,12 @@ async function renderCanales() {
 async function renderCanalesSocket(lista) {
     const ul = document.getElementById("lista-usuarios");
     ul.innerHTML = "";
+
+    if (lista.length === 0) {
+        ul.innerHTML = emmbeddMessageChat;
+        changeLordIconColors();
+        return;
+    }
 
     lista.forEach((u) => {
         const mostrarUsuario =
@@ -389,12 +404,12 @@ function joinCanal(canalObj) {
    MOSTRARLE COMANDOS AL USUARIO
 =========================================== */
 const showCommands = () => {
-    comandos.forEach(c => {
+    comands.forEach(c => {
         const chat = document.getElementById("chat");
         const div = document.createElement("div");
 
         div.classList.add("mensaje");
-        div.innerHTML = `<strong>${c}:</strong> `;
+        div.innerHTML = `<strong>${c.comando}:</strong> ${c.descripcion}`;
 
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
@@ -437,6 +452,11 @@ document.getElementById("mensaje").addEventListener("keypress", e => {
 =========================================== */
 window.onload = () => {
     validarUsuario();
+};
+
+window.onclose = () => {
+    sessionStorage.removeItem("user_id");
+    sessionStorage.removeItem("user_google_id");
 };
 
 /* ===========================================
@@ -490,28 +510,44 @@ function formatearFecha(fechaStr) {
 
 async function validarUsuario() {
     const id = sessionStorage.getItem("user_id");
+    console.log("Checkpoint 0", id)
 
-    if (!id || id === "null" || id === "undefined") {
+    if (!id || id === "null" || id === "undefined" || id === null) {
+        console.log("Checkpoint 1");
         try {
             const res = await fetch("/session_user");
             const data = await res.json();
+            console.log("Checkpoint 2", data, data.user, data.user._id);
+
             if (data.logged) {
+                // 👇 GUARDAR EN sessionStorage
                 sessionStorage.setItem("user_id", data.user._id);
                 sessionStorage.setItem("user_google_id", data.user.google_id);
+
+                // Actualizar la variable global también
+                usuarioActual._id = data.user._id;
+                usuarioActual.google_id = data.user.google_id;
+
                 conectarWS();
                 cargarPerfil();
                 renderCanales();
+                console.log("Checkpoint 3");
                 return;
             } else {
+                console.log("Checkpoint 4");
                 window.location.href = "/denied";
                 window.history.replaceState({}, "", "/denied");
             }
         } catch (e) {
+            console.log("Checkpoint 5");
             console.error(e)
             window.location.href = "/denied";
             window.history.replaceState({}, "", "/denied");
         }
     } else {
+        // Ya hay datos en sessionStorage
+        usuarioActual._id = id;
+        usuarioActual.google_id = sessionStorage.getItem("user_google_id");
         conectarWS();
         cargarPerfil();
         renderCanales();
@@ -522,7 +558,7 @@ async function validarUsuario() {
 /* ===========================================
    COLOREAR LOS LORD-ICON
 =========================================== */
-document.addEventListener("DOMContentLoaded", () => {
+function changeLordIconColors() {
     const icons = document.querySelectorAll("lord-icon");
 
     const cssPrimary = getComputedStyle(document.documentElement)
@@ -537,6 +573,10 @@ document.addEventListener("DOMContentLoaded", () => {
             `primary:${cssPrimary},secondary:${cssSecondary}`
         );
     });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    changeLordIconColors();
 });
 
 const emmbeddMessage = `         
@@ -552,6 +592,17 @@ const emmbeddMessage = `
               Está conversación esta vacía, envía un mensaje para comenzar
             </h4>
           </div>`
+
+const emmbeddMessageChat = `          
+        <div class="lord_container_users">
+            <lord-icon
+              src="https://cdn.lordicon.com/fozsorqm.json"
+              trigger="hover"
+              style="width: 10rem; height: 10rem"
+            >
+            </lord-icon>
+            <h5>Inicia un canal en grupo o uno a uno con tus amigos</h5>
+        </div>`;
 
 function paintMessageEmpty() {
     const chat = document.getElementById("chat");

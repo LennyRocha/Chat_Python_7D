@@ -80,7 +80,13 @@ def session_user():
 
     return jsonify({
         "logged": True,
-        "user": session["user"]
+        "user": {
+            "_id": session["user"]["_id"],
+            "google_id": session["user"]["google_id"],
+            "email": session["user"]["email"],
+            "name": session["user"]["name"],
+            "picture": session["user"]["picture"]
+        }
     })
 
 @rutas.get("/chat")

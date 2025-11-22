@@ -25,3 +25,8 @@ TIMESTAMP            | USUARIO              | HASH SHA-256                      
 [2025-11-18 20:06:11] | Joan                 | 9d53e27df353cc70019d62b1c632922b259a9c8d9f7b9a4de7730838c6d29995 |    22 chars
 [2025-11-18 20:08:15] | Leonardo Obed        | fa690b82061edfd2852629aeba8a8977b57e40fcb77d1a7a28b26cba62591204 |     3 chars
 [2025-11-18 20:08:47] | Joan                 | e716c1536b8c7a85eb49b4a0fb5c6cf24a5ac69dea76f97a97266ebceb3aa4d8 |     3 chars
+[2025-11-21 17:54:25] | Leonardo Obed        | c1c925a5869eaa864e7e936b09665183ad859cff5a00cde4bcd7c51702d3aad7 |     5 chars
+[2025-11-21 19:44:43] | Leonardo Obed        | c94f71858c68d708649928980c453ff4810b7478ff1c76e75d5310c14dd3c211 |    12 chars
+[2025-11-21 19:45:18] | Leonardo Obed        | b221d9dbb083a7f33428d7c2a3c3198ae925614d70210e28716ccaa7cd4ddb79 |     4 chars
+[2025-11-21 19:46:09] | Leonardo Obed        | 750e97c1f3b985ccc60e7d72f87bb2d4f0ef03d0b6fb446fe7e1507b26ad1ae9 |    22 chars
+[2025-11-21 19:46:33] | Leonardo Obed        | c25d97339b108f588be172667069e9da64e4e23f0985de228fa9efb4169ae735 |     6 chars
