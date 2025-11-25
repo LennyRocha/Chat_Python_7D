@@ -30,3 +30,9 @@ TIMESTAMP            | USUARIO              | HASH SHA-256                      
 [2025-11-21 19:45:18] | Leonardo Obed        | b221d9dbb083a7f33428d7c2a3c3198ae925614d70210e28716ccaa7cd4ddb79 |     4 chars
 [2025-11-21 19:46:09] | Leonardo Obed        | 750e97c1f3b985ccc60e7d72f87bb2d4f0ef03d0b6fb446fe7e1507b26ad1ae9 |    22 chars
 [2025-11-21 19:46:33] | Leonardo Obed        | c25d97339b108f588be172667069e9da64e4e23f0985de228fa9efb4169ae735 |     6 chars
+[2025-11-25 16:46:46] | Leonardo Obed        | 85f1a734e006b373b01a89b5ade26ffa157253f8bf572ad6394ec7bf5d2a302b |    39 chars
+[2025-11-25 16:47:04] | Salem                | e633f4fc79badea1dc5db970cf397c8248bac47cc3acf9915ba60b5d76b0e88f |     4 chars
+[2025-11-25 16:47:12] | Leonardo Obed        | 39e8a72a12c0da29db49778fc053bcb92ff1722e3e8c96e6a725732892d6cfdb |     8 chars
+[2025-11-25 16:47:17] | Salem                | 795161785ada13e78b5952b895686b2f614b3cfca5940e48df3489f7e2bc372e |     4 chars
+[2025-11-25 16:47:59] | Salem                | fa690b82061edfd2852629aeba8a8977b57e40fcb77d1a7a28b26cba62591204 |     3 chars
+[2025-11-25 16:48:05] | Leonardo Obed        | 7d97c92bd2ee3007ce89991ba896b7ba471193a49812cf7786a1eb8860282ad0 |    16 chars

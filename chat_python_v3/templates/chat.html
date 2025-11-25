@@ -21,8 +21,15 @@
     <div id="container">
       <div id="menu">
         <div id="button-col">
-          <button onclick="closeMenu();"><i class="fas fa-message"></i></button>
-          <button onclick="closeMenu()"><i class="fas fa-users"></i></button>
+          <button onclick="closeMenu(); toggleShow();" title="Alternar vista">
+            <i class="fas fa-message"></i>
+          </button>
+          <button
+            onclick="closeMenu(); renderCanales();"
+            title="Recargar canales"
+          >
+            <i class="fas fa-sync"></i>
+          </button>
           <button onclick="closeMenu(); showCommands()">
             <i class="fa-solid fa-book"></i>
           </button>
@@ -30,7 +37,13 @@
             <i class="fa-solid fa-moon"></i>
           </button>
         </div>
-        <img alt="mi_perfil" id="side_img" title="Mi perfil"  onclick="window.location.href = '/perfil'"/>
+        <button
+          commandfor="modal"
+          command="show-modal"
+          style="appearance: none; all: unset"
+        >
+          <img alt="mi_perfil" id="side_img" title="Mi perfil" />
+        </button>
       </div>
       <!-- Columna de usuarios -->
       <div id="usuarios">
@@ -126,6 +139,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de mi perfil -->
+    <dialog id="modal">
+      <div class="perfil_div">
+        <h3>Mi perfil</h3>
+        <div id="perfil_data"></div>
+      </div>
+      <button commandfor="modal" command="close" id="dialog_btn">
+        Cerrar sesión
+      </button>
+    </dialog>
   </body>
   <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </html>

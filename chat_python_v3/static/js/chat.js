@@ -6,9 +6,7 @@ window.addEventListener("resize", () => {
 });
 
 let canal = null;
-
 let my_name = "";
-
 let my_email = "";
 
 const perfilImg = document.getElementById("side_img");
@@ -21,22 +19,22 @@ function setCanalName() {
     img.src = `https://avatar.iran.liara.run/username?username=${canal.nombre}`
 }
 
-/* Cierra el menú cuando está en modo móvil */
 function closeMenu() {
     if (window.innerWidth < 768) {
         document.body.classList.remove("show");
     }
 }
 
-/* Cierra menú (si móvil) y cambia modo oscuro */
+/* Cierra menú (si móvil) y cambia modo oscuro SIN borrar mensajes */
 function closeAndToggle() {
     if (window.innerWidth < 768) {
         document.body.classList.remove("show");
     }
     document.body.classList.toggle("dark");
+    changeLordIconColors(); // Actualizar colores de iconos
 }
 
-const comandos = ["/crear", "/crear_priv", "/unir", "/salir"];
+const comandos = ["/crear", "/crear_priv", "/unir", "/salir", "/agregar", "/remover", "/dar_admin", "/quitar_admin"];
 
 const comands = [
     { comando: "/crear nombre", descripcion: "Crear canal público" },
@@ -49,9 +47,7 @@ const comands = [
     { comando: "/quitar_admin correo canal", descripcion: "Quitar permisos de admin (solo admin)" }
 ];
 
-// Ejemplo: imprimir en consola
 comands.forEach(c => console.log(`${c.comando} → ${c.descripcion}`));
-
 
 /* ===========================================
    CONFIG CLIENTE (USUARIO)
@@ -61,7 +57,6 @@ const WS_URL = "ws://localhost:5001";
 let socket = null;
 let reconectando = false;
 
-/* ID generado o recuperado */
 let usuarioActual = {
     _id: sessionStorage.getItem("user_id") || null,
     google_id: sessionStorage.getItem("user_google_id") || null
@@ -77,7 +72,6 @@ function conectarWS() {
 
     const chatDiv = document.getElementById("chat");
 
-    /* Cuando conecta */
     socket.onopen = () => {
         console.log("🟢 WebSocket conectado");
 
@@ -89,7 +83,6 @@ function conectarWS() {
         socket.send(JSON.stringify(payload));
     };
 
-    /* Cuando recibe un mensaje */
     socket.onmessage = (event) => {
         let data;
 
@@ -109,11 +102,9 @@ function conectarWS() {
                 break;
 
             case "historial":
-                // Muestra primero mensaje de sistema al unirse al canal
                 if (data.contenido) {
                     agregarMensajeSistema({ texto: data.contenido });
                 }
-                // Si viene información de canal (al unir)
                 if (data.canal) {
                     canal = data.canal;
                     setCanalName();
@@ -127,25 +118,129 @@ function conectarWS() {
                 break;
 
             case "comando":
+                // Procesar según el comando
                 switch (data.comando) {
                     case "/crear":
                     case "/crear_priv":
                         renderCanalesSocket(data.lista);
+                        // Pintar el mensaje como mensaje de sistema
+                        agregarMensajeSistema({ 
+                            texto: data.resultado.mensaje ?? data.mensaje ?? "✅ Comando ejecutado" 
+                        });
+                        // También pintar como mensaje normal si viene el contenido del usuario
+                        if (data.contenido) {
+                            agregarMensajeAlDOM({
+                                nombre: my_name,
+                                contenido: data.contenido,
+                                fecha: new Date().toISOString()
+                            });
+                        }
                         break;
+
+                    case "/unir":
+                        if (data.canal) {
+                            canal = data.canal;
+                            setCanalName();
+                        }
+                        if (data.mensajes && data.mensajes.length > 0) {
+                            renderHistorial(data.mensajes);
+                        } else {
+                            paintMessageEmpty();
+                        }
+                        // Pintar mensaje de sistema informando que se unió
+                        agregarMensajeSistema({ 
+                            texto: data.contenido ?? "✅ Te uniste al canal" 
+                        });
+                        break;
+
                     case "/salir":
                         chatDiv.innerHTML = '';
                         renderCanalesSocket(data.lista);
+                        // Pintar el mensaje de resultado
+                        agregarMensajeSistema({ 
+                            texto: data.resultado ?? "✅ Regresaste al canal general" 
+                        });
                         break;
+
+                    case "/agregar":
+                        // Mostrar resultado de agregar usuario
+                        agregarMensajeSistema({ 
+                            texto: data.resultado ?? "✅ Usuario agregado" 
+                        });
+                        // También pintar el comando que ejecutó
+                        if (data.contenido) {
+                            agregarMensajeAlDOM({
+                                nombre: my_name,
+                                contenido: data.contenido,
+                                fecha: new Date().toISOString()
+                            });
+                        }
+                        break;
+
+                    case "/remover":
+                        // Mostrar resultado de remover usuario
+                        agregarMensajeSistema({ 
+                            texto: data.resultado ?? "✅ Usuario removido" 
+                        });
+                        if (data.contenido) {
+                            agregarMensajeAlDOM({
+                                nombre: my_name,
+                                contenido: data.contenido,
+                                fecha: new Date().toISOString()
+                            });
+                        }
+                        break;
+
+                    case "/dar_admin":
+                        // Mostrar resultado de dar admin
+                        agregarMensajeSistema({ 
+                            texto: data.resultado ?? "✅ Admin agregado" 
+                        });
+                        if (data.contenido) {
+                            agregarMensajeAlDOM({
+                                nombre: my_name,
+                                contenido: data.contenido,
+                                fecha: new Date().toISOString()
+                            });
+                        }
+                        break;
+
+                    case "/quitar_admin":
+                        // Mostrar resultado de quitar admin
+                        agregarMensajeSistema({ 
+                            texto: data.resultado ?? "✅ Admin removido" 
+                        });
+                        if (data.contenido) {
+                            agregarMensajeAlDOM({
+                                nombre: my_name,
+                                contenido: data.contenido,
+                                fecha: new Date().toISOString()
+                            });
+                        }
+                        break;
+
+                    default:
+                        agregarMensajeSistema({ 
+                            texto: data.resultado ?? data.mensaje ?? "✅ Comando ejecutado" 
+                        });
                 }
-                agregarMensajeSistema({ texto: data.resultado.mensaje ?? data.mensaje ?? data.resultado });
                 break;
+
             case "bienvenida":
                 agregarMensajeSistema({ texto: data.resultado ?? data.mensaje });
                 break;
 
             case "usuario_conectado":
             case "usuario_desconectado":
-                agregarMensajeSistema({ texto: `${data.usuario} se ha ${data.tipo === "usuario_conectado" ? "conectado" : "desconectado"}` });
+                agregarMensajeSistema({ 
+                    texto: `${data.usuario} se ha ${data.tipo === "usuario_conectado" ? "conectado" : "desconectado"}` 
+                });
+                break;
+
+            case "error":
+                agregarMensajeSistema({ 
+                    texto: `❌ Error: ${data.mensaje}` 
+                });
                 break;
 
             default:
@@ -153,7 +248,6 @@ function conectarWS() {
         }
     };
 
-    /* Cuando se desconecta */
     socket.onclose = () => {
         console.warn("🔴 WS cerrado");
 
@@ -167,7 +261,6 @@ function conectarWS() {
         }
     };
 
-    /* Cuando hay error */
     socket.onerror = (err) => console.error("⚠ WS Error:", err);
 }
 
@@ -179,6 +272,7 @@ function enviarMensaje(texto) {
 
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         console.warn("WS no conectado aún");
+        agregarMensajeSistema({ texto: "⚠️ Conexión no establecida. Intenta de nuevo." });
         return;
     }
 
@@ -194,7 +288,7 @@ function enviarMensaje(texto) {
 
     socket.send(JSON.stringify(msg));
 
-    // limpiar textarea
+    // Limpiar textarea
     document.getElementById("mensaje").value = "";
 }
 
@@ -205,7 +299,6 @@ function agregarMensajeAlDOM(data) {
     const chat = document.getElementById("chat");
     const div = document.createElement("div");
 
-    // Si viene información de canal (al unir)
     if (data.canal) {
         canal = data.canal;
         setCanalName();
@@ -223,15 +316,20 @@ function agregarMensajeAlDOM(data) {
         <p>${formatearFecha(data.fecha)}</p>
         </div>`;
     }
-    // Mensaje normal
+    
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
 
 function agregarMensajeSistema(data) {
     const chat = document.getElementById("chat");
+    
+    // Verificar si el chat está vacío y mostrar el mensaje de bienvenida
+    if (chat.innerHTML.includes("lord_icon_chat") || chat.innerHTML.includes("lord_container_users")) {
+        chat.innerHTML = ''; // Limpiar solo si hay el mensaje de bienvenida
+    }
+    
     const div = document.createElement("div");
-
     div.classList.add("system-message");
     div.innerHTML = `<em>${data.texto ?? data.resultado}</em>`;
 
@@ -265,7 +363,7 @@ async function renderUsuarios() {
     }
 
     lista.forEach((u) => {
-        if (u._id === usuarioActual._id) return; // no mostrarte a ti mismo
+        if (u._id === usuarioActual._id) return;
 
         ul.insertAdjacentHTML(
             "beforeend",
@@ -335,7 +433,6 @@ async function renderCanales() {
             </div>
         `;
 
-        // Listener seguro que pasa el objeto completo
         li.addEventListener("click", () => { joinCanal(u); closeMenu() });
 
         ul.appendChild(li);
@@ -373,7 +470,6 @@ async function renderCanalesSocket(lista) {
             </div>
         `;
 
-        // Listener seguro que pasa el objeto completo
         li.addEventListener("click", () => { joinCanal(u); closeMenu() });
 
         ul.appendChild(li);
@@ -383,11 +479,12 @@ async function renderCanalesSocket(lista) {
 function joinCanal(canalObj) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         console.warn("WS no conectado aún");
+        agregarMensajeSistema({ texto: "⚠️ Conexión no establecida." });
         return;
     }
 
-    canal = canalObj; // actualizar canal actual
-    setCanalName();   // actualizar UI
+    canal = canalObj;
+    setCanalName();
 
     const msg = {
         tipo: "comando",
@@ -421,7 +518,7 @@ const showCommands = () => {
 =========================================== */
 function renderHistorial(mensajes) {
     const chat = document.getElementById("chat");
-    chat.innerHTML = ""; // Limpiar chat actual
+    chat.innerHTML = ""; // Limpiar chat
 
     mensajes.forEach(m => {
         agregarMensajeAlDOM({
@@ -474,6 +571,8 @@ async function cargarPerfil() {
             return;
         }
 
+        document.getElementById("perfil_data").innerHTML = JSON.stringify(data);
+
         my_name = data.nombre;
         my_email = data.email;
         perfilImg.src = data.picture ?? `https://avatar.iran.liara.run/username?username=${data.nombre}+${data.apellido ?? ''}`
@@ -484,7 +583,7 @@ async function cargarPerfil() {
 
 //Formatear fecha
 function formatearFecha(fechaStr) {
-    const dt = new Date(fechaStr); // procesa Tue, 18 Nov 2025 00:44:23 GMT
+    const dt = new Date(fechaStr);
     const ahora = new Date();
 
     const esHoy =
@@ -493,7 +592,6 @@ function formatearFecha(fechaStr) {
         dt.getDate() === ahora.getDate();
 
     if (esHoy) {
-        // Solo la hora
         return dt.toLocaleTimeString("es-MX", {
             hour: "2-digit",
             minute: "2-digit",
@@ -520,11 +618,9 @@ async function validarUsuario() {
             console.log("Checkpoint 2", data, data.user, data.user._id);
 
             if (data.logged) {
-                // 👇 GUARDAR EN sessionStorage
                 sessionStorage.setItem("user_id", data.user._id);
                 sessionStorage.setItem("user_google_id", data.user.google_id);
 
-                // Actualizar la variable global también
                 usuarioActual._id = data.user._id;
                 usuarioActual.google_id = data.user.google_id;
 
@@ -545,7 +641,6 @@ async function validarUsuario() {
             window.history.replaceState({}, "", "/denied");
         }
     } else {
-        // Ya hay datos en sessionStorage
         usuarioActual._id = id;
         usuarioActual.google_id = sessionStorage.getItem("user_google_id");
         conectarWS();
@@ -577,35 +672,42 @@ function changeLordIconColors() {
 
 document.addEventListener("DOMContentLoaded", () => {
     changeLordIconColors();
+    document.getElementById("dialog_btn").addEventListener("click", cerrarSesion)
 });
 
 const emmbeddMessage = `         
-         <div class="lord_icon_chat">
-            <lord-icon
-                src="https://cdn.lordicon.com/tsrgicte.json"
-                trigger="hover"
-                style="width: 250px; height: 250px"
-            >
-            </lord-icon>
-            <h2>¡Es hora de romper el hielo!</h2>
-            <h4>
-              Está conversación esta vacía, envía un mensaje para comenzar
-            </h4>
-          </div>`
+     <div class="lord_icon_chat">
+        <lord-icon
+            src="https://cdn.lordicon.com/tsrgicte.json"
+            trigger="hover"
+            style="width: 250px; height: 250px"
+        >
+        </lord-icon>
+        <h2>¡Es hora de romper el hielo!</h2>
+        <h4>
+          Esta conversación está vacía, envía un mensaje para comenzar
+        </h4>
+      </div>`
 
 const emmbeddMessageChat = `          
-        <div class="lord_container_users">
-            <lord-icon
-              src="https://cdn.lordicon.com/fozsorqm.json"
-              trigger="hover"
-              style="width: 10rem; height: 10rem"
-            >
-            </lord-icon>
-            <h5>Inicia un canal en grupo o uno a uno con tus amigos</h5>
-        </div>`;
+    <div class="lord_container_users">
+        <lord-icon
+          src="https://cdn.lordicon.com/fozsorqm.json"
+          trigger="hover"
+          style="width: 10rem; height: 10rem"
+        >
+        </lord-icon>
+        <h5>Inicia un canal en grupo o uno a uno con tus amigos</h5>
+    </div>`;
 
 function paintMessageEmpty() {
     const chat = document.getElementById("chat");
     chat.innerHTML = '';
     chat.innerHTML = emmbeddMessage;
+}
+
+function cerrarSesion(){
+    sessionStorage.removeItem("user_id");
+    sessionStorage.removeItem("user_google_id");
+    window.location.href = "/login";
 }

@@ -4,6 +4,9 @@
           --surface: #fff;
           --surface-text: #242424;
 
+          --snack-text: #fff;
+          --snack: #242424;
+
           --primario: #212e8e;
           --primario-focus: #2d42fe;
           --primario-sombra: #6e94ff;
@@ -45,6 +48,9 @@
           --surface: #242424;
           --back-text: #f4f4f4;
           --back: #2e2e2e;
+
+          --snack: #fff;
+          --snack-text: #242424;
 
           --primario-sombra: #212e8e;
           --primario: #6e94ff;
@@ -560,6 +566,88 @@
           padding: .5rem;
       }
 
-      .lord_icon_chat h4{
-        text-align: center;
+      .lord_icon_chat h4 {
+          text-align: center;
+      }
+
+      /*Login*/
+      dialog {
+          border: none;
+          background-color: var(--surface);
+          color: var(--surface-text);
+          border-radius: 5px;
+          padding: 0;
+          max-width: 350px;
+          width: 100%;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          animation: slideIn 0.3s ease-out;
+          margin: auto;
+          transition: all .3s ease-in-out;
+      }
+
+      #snackbar.off {
+          animation: slideOut 0.3s ease-in-out forwards;
+      }
+
+      #snackbar.on {
+          animation: slideIn 0.3s ease-in-out forwards;
+      }
+
+      @keyframes slideIn {
+          from {
+              opacity: 0;
+              transform: translateY(-30px);
+          }
+
+          to {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+
+      @keyframes slideOut {
+          to {
+              opacity: 0;
+              transform: translateY(-30px);
+          }
+      }
+
+      /* Backdrop con ::backdrop (característica moderna) */
+      dialog::backdrop {
+          background-color: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(4px);
+          animation: fadeIn 0.3s ease-out;
+      }
+
+      @keyframes fadeIn {
+          from {
+              opacity: 0;
+          }
+
+          to {
+              opacity: 1;
+          }
+      }
+
+      #dialog_btn {
+          width: 100%;
+          background-color: var(--primario);
+          color: white;
+          padding: .5rem;
+      }
+
+      .perfil_div {
+          box-sizing: border-box;
+          padding: .25rem;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+
+      #close_snack{
+        color: var(--secundario);
+      }
+
+      #close_snack:hover{
+        color: var(--secundario-focus);
       }
